@@ -28,14 +28,13 @@ canvas.addEventListener('pointerup',e=>{
     const xy=[(e.clientX-b.left)/b.width,(e.clientY-b.top)/b.height].map(v=>Math.round(v*10000)).join(',');
     instance.SendMessage('Пролив','WebTap',xy);
 });
-const config={dataUrl:'Build/Web.data.unityweb',frameworkUrl:'Build/Web.framework.js.unityweb',codeUrl:'Build/Web.wasm.unityweb',streamingAssetsUrl:'StreamingAssets',companyName:'Straitwatch',productName:'Пролив',productVersion:'0.3.0',devicePixelRatio:Math.min(devicePixelRatio,1.5)};
+const config={dataUrl:'Build/Web.data.unityweb',frameworkUrl:'Build/Web.framework.js.unityweb',codeUrl:'Build/Web.wasm.unityweb',streamingAssetsUrl:'StreamingAssets',companyName:'Straitwatch',productName:'Пролив',productVersion:'0.3.1',devicePixelRatio:Math.min(devicePixelRatio,1.5)};
 createUnityInstance(canvas,config,p=>document.querySelector('progress').value=p).then(game=>{instance=game;document.querySelector('#load').remove();canvas.focus()}).catch(()=>{document.querySelector('#status').textContent='Не удалось запустить игру. Проверь поддержку WebGL 2 или попробуй другой браузер.'});
 const done=()=>{box.close();canvas.focus()};
 document.querySelector('#close').onclick=done;
 function show(title,text,action,fn){document.querySelector('label').textContent=title;value.value=text;primary.textContent=action;primary.onclick=fn;box.showModal();value.focus();value.select()}
 window.stormShare=(code,message)=>{
-    const link=new URL(location.href);link.search='';link.hash=code;
-    const text=message?message.split('\n')[0]+'\n'+link.href+'\n'+code:code;
+    const text=message||code;
     show(message?'Приглашение на тот же шторм':'Код вызова',text,message&&navigator.share?'Поделиться':'Скопировать',async()=>{
         try{if(message&&navigator.share)await navigator.share({text});else if(navigator.clipboard)await navigator.clipboard.writeText(text);else {value.select();return}done()}catch(e){if(e.name!=='AbortError')value.select()}
     });

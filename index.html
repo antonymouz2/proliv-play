@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#142c35">
+<title>Пролив · Минута на маяке</title>
+<style>
+*{box-sizing:border-box}html,body,canvas{width:100%;height:100%;margin:0}body{background:#142c35;color:#f7ebd4;font:18px system-ui,sans-serif}canvas{display:block;touch-action:none;outline:none}
+#load,.rotate{position:absolute;inset:0;display:grid;place-content:center;text-align:center;padding:1rem;background:#142c35}h1{margin:0 0 .55em}progress{width:min(76vw,300px);accent-color:#ffd384}
+.rotate{display:none}dialog{border:1px solid #48656b;background:#18343e;color:#f7ebd4;border-radius:10px;width:min(90vw,550px);padding:20px}dialog::backdrop{background:#0b1d24b8}label{display:block;font-weight:700;margin-bottom:12px}textarea{display:block;width:100%;min-height:78px;resize:vertical;background:#fff9eb;color:#142c35;padding:10px;font:16px system-ui}button{cursor:pointer;padding:10px 14px;border:0;border-radius:4px;background:#ffd384;color:#142c35;font:bold 16px system-ui;margin:12px 8px 0 0}button:last-of-type{background:#aacbc3}
+@media (orientation:portrait) and (pointer:coarse){.rotate{display:grid;z-index:1}}
+</style>
+<canvas id="game" tabindex="-1" aria-label="Игра Пролив"></canvas>
+<div id="load"><h1>Пролив</h1><p id="status">Загружается остров…</p><progress max="1" value="0"></progress></div>
+<div class="rotate">Поверни телефон горизонтально, чтобы сыграть.</div>
+<dialog id="action"><label for="payload"></label><textarea id="payload"></textarea><button id="primary"></button><button id="close">Закрыть</button></dialog>
+<script src="Build/Web.loader.js"></script>
+<script>
+const canvas=document.querySelector('canvas'), box=document.querySelector('dialog'), value=document.querySelector('textarea'), primary=document.querySelector('#primary');
+let instance;
+let touch;
+canvas.addEventListener('pointerdown',e=>{if(!e.isPrimary||e.button!==0)return;touch={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);canvas.focus()});
+canvas.addEventListener('pointercancel',()=>touch=null);
+canvas.addEventListener('pointerup',e=>{
+    if(!touch||touch.id!==e.pointerId||!instance)return;
+    const b=canvas.getBoundingClientRect(), moved=Math.hypot(touch.x-e.clientX,touch.y-e.clientY);touch=null;
+    if(moved>Math.max(16,b.height*.05)||e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)return;
+    const xy=[(e.clientX-b.left)/b.width,(e.clientY-b.top)/b.height].map(v=>Math.round(v*10000)).join(',');
+    instance.SendMessage('Пролив','WebTap',xy);
+});
+const config={dataUrl:'Build/Web.data.unityweb',frameworkUrl:'Build/Web.framework.js.unityweb',codeUrl:'Build/Web.wasm.unityweb',streamingAssetsUrl:'StreamingAssets',companyName:'Straitwatch',productName:'Пролив',productVersion:'0.3.0',devicePixelRatio:Math.min(devicePixelRatio,1.5)};
+createUnityInstance(canvas,config,p=>document.querySelector('progress').value=p).then(game=>{instance=game;document.querySelector('#load').remove();canvas.focus()}).catch(()=>{document.querySelector('#status').textContent='Не удалось запустить игру. Проверь поддержку WebGL 2 или попробуй другой браузер.'});
+const done=()=>{box.close();canvas.focus()};
+document.querySelector('#close').onclick=done;
+function show(title,text,action,fn){document.querySelector('label').textContent=title;value.value=text;primary.textContent=action;primary.onclick=fn;box.showModal();value.focus();value.select()}
+window.stormShare=(code,message)=>{
+    const link=new URL(location.href);link.search='';link.hash=code;
+    const text=message?message.split('\n')[0]+'\n'+link.href+'\n'+code:code;
+    show(message?'Приглашение на тот же шторм':'Код вызова',text,message&&navigator.share?'Поделиться':'Скопировать',async()=>{
+        try{if(message&&navigator.share)await navigator.share({text});else if(navigator.clipboard)await navigator.clipboard.writeText(text);else {value.select();return}done()}catch(e){if(e.name!=='AbortError')value.select()}
+    });
+};
+window.stormPaste=()=>show('Вставь сообщение или код друга','','Открыть вызов',()=>{instance.SendMessage('Пролив','PasteWebInvite',value.value);done()});
+</script>
+</html>

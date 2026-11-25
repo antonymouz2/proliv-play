@@ -28,9 +28,24 @@ canvas.addEventListener('pointerup',e=>{
     const xy=[(e.clientX-b.left)/b.width,(e.clientY-b.top)/b.height].map(v=>Math.round(v*10000)).join(',');
     instance.SendMessage('Пролив','WebTap',xy);
 });
-const version='0.6.5';
+const version='0.6.6';
 const retry=document.querySelector('#retry'), status=document.querySelector('#status'), progress=document.querySelector('progress');
 const attempt=new URL(location.href).searchParams.get('retry');
+const liveKey=new URL(location.href).searchParams.get('live');
+const localLive=location.hostname==='127.0.0.1' && /^[a-f0-9]{48}$/.test(liveKey||'');
+let syncPending=false;
+if(localLive)window.liveDuelSync=async body=>{
+    if(syncPending)return;
+    syncPending=true;
+    try{
+        const response=await fetch('/live/sync',{method:'POST',body,
+            headers:{'Content-Type':'application/json','Authorization':'Bearer '+liveKey}});
+        if(!response.ok)throw Error('Live session disconnected');
+        const {moves}=await response.json();
+        if(moves.length)instance.SendMessage('Пролив','LiveMoves',moves.map(m=>[m.id,m.kind,m.a,m.b].join(',')).join('\n'));
+    }catch(error){console.error(error)}
+    finally{syncPending=false}
+};
 function buildFile(name){
     const url=new URL(name,location.href);
     url.searchParams.set('v',version);
@@ -60,6 +75,7 @@ async function start(){
         document.body.classList.add('ready');
         document.querySelector('#load').remove();
         canvas.focus();
+        if(localLive)instance.SendMessage('Пролив','StartLocalLive','');
     }catch(error){
         console.error('Пролив: ошибка запуска',error);
         status.textContent='Не удалось запустить игру. Попробуй загрузить её заново.';

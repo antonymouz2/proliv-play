@@ -28,7 +28,7 @@ canvas.addEventListener('pointerup',e=>{
     const xy=[(e.clientX-b.left)/b.width,(e.clientY-b.top)/b.height].map(v=>Math.round(v*10000)).join(',');
     instance.SendMessage('Пролив','WebTap',xy);
 });
-const config={dataUrl:'Build/Web.data.unityweb',frameworkUrl:'Build/Web.framework.js.unityweb',codeUrl:'Build/Web.wasm.unityweb',streamingAssetsUrl:'StreamingAssets',companyName:'Straitwatch',productName:'Пролив',productVersion:'0.5.0',devicePixelRatio:Math.min(devicePixelRatio,1.5)};
+const config={dataUrl:'Build/Web.data.unityweb',frameworkUrl:'Build/Web.framework.js.unityweb',codeUrl:'Build/Web.wasm.unityweb',streamingAssetsUrl:'StreamingAssets',companyName:'Straitwatch',productName:'Пролив',productVersion:'0.6.0',devicePixelRatio:Math.min(devicePixelRatio,1.5)};
 createUnityInstance(canvas,config,p=>document.querySelector('progress').value=p).then(game=>{instance=game;document.querySelector('#load').remove();canvas.focus()}).catch(()=>{document.querySelector('#status').textContent='Не удалось запустить игру. Проверь поддержку WebGL 2 или попробуй другой браузер.'});
 const done=()=>{box.close();canvas.focus()};
 document.querySelector('#close').onclick=done;

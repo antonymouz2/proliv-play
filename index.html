@@ -28,7 +28,7 @@ canvas.addEventListener('pointerup',e=>{
     const xy=[(e.clientX-b.left)/b.width,(e.clientY-b.top)/b.height].map(v=>Math.round(v*10000)).join(',');
     instance.SendMessage('Пролив','WebTap',xy);
 });
-const version='0.6.6';
+const version='0.6.7';
 const retry=document.querySelector('#retry'), status=document.querySelector('#status'), progress=document.querySelector('progress');
 const attempt=new URL(location.href).searchParams.get('retry');
 const liveKey=new URL(location.href).searchParams.get('live');
